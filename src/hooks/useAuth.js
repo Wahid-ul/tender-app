@@ -1,6 +1,16 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
 
+async function ensureProfile(user) {
+  await supabase.from("profiles").upsert(
+    {
+      id:   user.id,
+      name: user.user_metadata?.name || user.email,
+    },
+    { onConflict: "id", ignoreDuplicates: true }
+  );
+}
+
 export function useAuth() {
   const [user,    setUser]    = useState(null);
   const [loading, setLoading] = useState(true);
@@ -9,7 +19,9 @@ export function useAuth() {
     // Get initial session — always resolve loading even on error
     supabase.auth.getSession()
       .then(({ data: { session } }) => {
-        setUser(session?.user ?? null);
+        const u = session?.user ?? null;
+        setUser(u);
+        if (u) ensureProfile(u);
       })
       .catch(() => {
         setUser(null);
@@ -20,7 +32,9 @@ export function useAuth() {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+      const u = session?.user ?? null;
+      setUser(u);
+      if (u) ensureProfile(u);
     });
 
     return () => subscription.unsubscribe();
