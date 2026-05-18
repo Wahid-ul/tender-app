@@ -7,7 +7,10 @@ export function useCircle(userId) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
     fetchCircle();
   }, [userId]);
 
