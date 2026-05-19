@@ -5,8 +5,9 @@ export function useCatGame(circleId, userId) {
   const [game,    setGame]    = useState(null);
   const [votes,   setVotes]   = useState([]);
   const [members, setMembers] = useState([]);
-  const [myVote,  setMyVote]  = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [myVote,    setMyVote]    = useState(null);
+  const [voteError, setVoteError] = useState("");
+  const [loading,   setLoading]   = useState(true);
 
   const fetchMembers = useCallback(async () => {
     const { data } = await supabase
@@ -61,13 +62,31 @@ export function useCatGame(circleId, userId) {
 
   const vote = async (votedForId) => {
     if (!game) return;
+
+    // Optimistic update — UI transitions immediately
+    setMyVote(votedForId);
+    setVotes((prev) => {
+      const without = prev.filter((v) => v.voter_id !== userId);
+      return [...without, { voter_id: userId, voted_for: votedForId }];
+    });
+
     const { error } = await supabase
       .from("cat_votes")
       .upsert(
         { game_id: game.id, voter_id: userId, voted_for: votedForId, prompt_index: game.prompt_index },
         { onConflict: "game_id,voter_id,prompt_index" }
       );
-    if (!error) await fetchVotes(game.id, game.prompt_index);
+
+    if (error) {
+      // Revert on failure
+      setVoteError(error.message);
+      setMyVote(null);
+      setVotes((prev) => prev.filter((v) => v.voter_id !== userId));
+    } else {
+      setVoteError("");
+      // Sync real server state
+      await fetchVotes(game.id, game.prompt_index);
+    }
   };
 
   const nextRound = async () => {
@@ -85,5 +104,5 @@ export function useCatGame(circleId, userId) {
     }
   };
 
-  return { game, votes, members, myVote, loading, vote, nextRound };
+  return { game, votes, members, myVote, voteError, loading, vote, nextRound };
 }

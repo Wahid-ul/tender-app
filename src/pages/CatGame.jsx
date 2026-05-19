@@ -39,7 +39,7 @@ function getWinnerTitle(seed) {
 }
 
 export default function CatGame({ user, circle }) {
-  const { game, votes, members, myVote, loading, vote, nextRound } = useCatGame(
+  const { game, votes, members, myVote, voteError, loading, vote, nextRound } = useCatGame(
     circle?.id,
     user?.id
   );
@@ -130,6 +130,11 @@ export default function CatGame({ user, circle }) {
             exit={{ opacity: 0 }}
           >
             <p className="text-xs text-muted font-medium mb-3 text-center">tap to cast your paw 🐾</p>
+            {voteError && (
+              <p className="text-sm text-red-400 bg-red-50 px-3 py-2 rounded-lg mb-3 text-center">
+                {voteError}
+              </p>
+            )}
             <div className="grid grid-cols-2 gap-3">
               {members.map((member, i) => {
                 const isMe = member.id === user.id;
