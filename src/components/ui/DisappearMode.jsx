@@ -39,8 +39,8 @@ const DURATIONS = [
   { label: "1 week",  hours: 168 },
 ];
 
-export default function DisappearMode({ user, onClose }) {
-  const { myStatus, setDisappear, clearDisappear } = useDisappear(user?.id);
+export default function DisappearMode({ user, inviteCode, onClose }) {
+  const { myStatus, setDisappear, clearDisappear } = useDisappear(user?.id, inviteCode);
 
   const [selected, setSelected]   = useState(null);
   const [duration, setDuration]   = useState(DURATIONS[0]);

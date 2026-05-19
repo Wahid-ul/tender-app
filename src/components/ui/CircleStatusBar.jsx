@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "../../lib/supabase";
+import { decrypt } from "../../lib/crypto";
 import { DISAPPEAR_OPTIONS } from "./DisappearMode";
 
 const MOOD_EMOJIS = {
@@ -48,13 +49,23 @@ export default function CircleStatusBar({ circle, currentUserId }) {
       .in("user_id", ids)
       .gt("expires_at", new Date().toISOString());
 
-    const moodMap     = Object.fromEntries((moodData     ?? []).map((m) => [m.user_id, m.mood]));
-    const disappearMap = Object.fromEntries((disappearData ?? []).map((d) => [d.user_id, d.status]));
+    const inviteCode = circle.invite_code;
+
+    const moodMap = Object.fromEntries(
+      await Promise.all(
+        (moodData ?? []).map(async (m) => [m.user_id, await decrypt(m.mood, inviteCode)])
+      )
+    );
+    const disappearMap = Object.fromEntries(
+      await Promise.all(
+        (disappearData ?? []).map(async (d) => [d.user_id, await decrypt(d.status, inviteCode)])
+      )
+    );
 
     setMembers(
       profiles.map((p) => ({
         ...p,
-        mood:     moodMap[p.id]      ?? null,
+        mood:      moodMap[p.id]      ?? null,
         disappear: disappearMap[p.id] ?? null,
       }))
     );

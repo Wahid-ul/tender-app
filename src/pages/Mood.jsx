@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "../lib/supabase";
+import { encrypt, decrypt } from "../lib/crypto";
 
 const MOODS = [
   { id: "surviving",     label: "surviving",     emoji: "😮‍💨", color: "#fde8d8" },
@@ -31,18 +32,22 @@ export default function Mood({ user, circle }) {
       .eq("date", today);
 
     if (data) {
-      setTodayMoods(data);
-      const mine = data.find((m) => m.user_id === user.id);
+      const decrypted = await Promise.all(
+        data.map(async (m) => ({ ...m, mood: await decrypt(m.mood, circle.invite_code) }))
+      );
+      setTodayMoods(decrypted);
+      const mine = decrypted.find((m) => m.user_id === user.id);
       if (mine) setMyMood(mine.mood);
     }
   };
 
   const selectMood = async (moodId) => {
     setSaving(true);
+    const encMood = await encrypt(moodId, circle.invite_code);
     const { error } = await supabase
       .from("moods")
       .upsert(
-        { user_id: user.id, circle_id: circle.id, mood: moodId, date: today },
+        { user_id: user.id, circle_id: circle.id, mood: encMood, date: today },
         { onConflict: "user_id,circle_id,date" }
       );
     if (!error) {

@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
+import { encrypt, decrypt } from "../lib/crypto";
 
-export function useDisappear(userId) {
+export function useDisappear(userId, inviteCode) {
   const [myStatus, setMyStatus] = useState(null);
   const [loading,  setLoading]  = useState(true);
 
@@ -18,6 +19,9 @@ export function useDisappear(userId) {
       .gt("expires_at", new Date().toISOString())
       .single();
 
+    if (data) {
+      data.status = await decrypt(data.status, inviteCode);
+    }
     setMyStatus(data ?? null);
     setLoading(false);
   };
@@ -38,21 +42,25 @@ export function useDisappear(userId) {
       .in("user_id", ids)
       .gt("expires_at", new Date().toISOString());
 
-    return data ?? [];
+    if (!data) return [];
+    return Promise.all(
+      data.map(async (d) => ({ ...d, status: await decrypt(d.status, inviteCode) }))
+    );
   };
 
   const setDisappear = async (status, durationHours) => {
-    const expires_at = new Date(Date.now() + durationHours * 60 * 60 * 1000).toISOString();
+    const expires_at   = new Date(Date.now() + durationHours * 60 * 60 * 1000).toISOString();
+    const encStatus    = await encrypt(status, inviteCode);
 
     const { data, error } = await supabase
       .from("disappear_status")
-      .upsert({ user_id: userId, status, expires_at }, { onConflict: "user_id" })
+      .upsert({ user_id: userId, status: encStatus, expires_at }, { onConflict: "user_id" })
       .select()
       .single();
 
     if (error) throw error;
-    setMyStatus(data);
-    return data;
+    setMyStatus({ ...data, status });
+    return { ...data, status };
   };
 
   const clearDisappear = async () => {

@@ -6,9 +6,8 @@ import { useDisappear } from "../hooks/useDisappear";
 export default function Profile({ user, circle, signOut }) {
   const [copied,          setCopied]          = useState(false);
   const [showDisappear,   setShowDisappear]    = useState(false);
-  const { myStatus, clearDisappear }          = useDisappear(user?.id);
-
   const inviteCode   = circle?.invite_code ?? "";
+  const { myStatus, clearDisappear }          = useDisappear(user?.id, inviteCode);
   const activeOption = DISAPPEAR_OPTIONS.find((o) => o.id === myStatus?.status);
 
   const copyCode = () => {
@@ -95,7 +94,7 @@ export default function Profile({ user, circle, signOut }) {
               style={{ overflow: "hidden" }}
             >
               <div className="pt-2 border-t border-black/5">
-                <DisappearMode user={user} onClose={() => setShowDisappear(false)} />
+                <DisappearMode user={user} inviteCode={inviteCode} onClose={() => setShowDisappear(false)} />
               </div>
             </motion.div>
           )}
