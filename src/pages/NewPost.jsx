@@ -20,7 +20,7 @@ const MOODS = [
 
 export default function NewPost({ user, circle }) {
   const navigate = useNavigate();
-  const { createPost, uploadPhoto } = usePosts(circle?.id, user?.id);
+  const { createPost, uploadPhoto } = usePosts(circle?.id, user?.id, circle?.invite_code);
 
   const [step,       setStep]       = useState("pick");   // pick | form
   const [postType,   setPostType]   = useState(null);

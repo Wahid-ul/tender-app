@@ -6,7 +6,7 @@ import CircleStatusBar    from "../components/ui/CircleStatusBar";
 import SoftAlertCard      from "../components/ui/SoftAlertCard";
 
 export default function Feed({ user, circle }) {
-  const { posts, loading, toggleReaction }    = usePosts(circle?.id, user?.id);
+  const { posts, loading, toggleReaction }    = usePosts(circle?.id, user?.id, circle?.invite_code);
   const { alerts, dismiss }                   = useSoftAlerts(circle?.id, user?.id);
   const today = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric" });
 

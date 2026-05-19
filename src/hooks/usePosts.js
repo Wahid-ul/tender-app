@@ -1,9 +1,18 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabase";
+import { encrypt, decrypt } from "../lib/crypto";
 
-export function usePosts(circleId, userId) {
+export function usePosts(circleId, userId, inviteCode) {
   const [posts,   setPosts]   = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const decryptPost = async (post) => {
+    const [content, content_url] = await Promise.all([
+      decrypt(post.content,     inviteCode),
+      decrypt(post.content_url, inviteCode),
+    ]);
+    return { ...post, content, content_url };
+  };
 
   const fetchPosts = useCallback(async () => {
     if (!circleId) return;
@@ -20,9 +29,12 @@ export function usePosts(circleId, userId) {
       .order("created_at", { ascending: false })
       .limit(50);
 
-    if (!error) setPosts(data ?? []);
+    if (!error) {
+      const decrypted = await Promise.all((data ?? []).map(decryptPost));
+      setPosts(decrypted);
+    }
     setLoading(false);
-  }, [circleId]);
+  }, [circleId, inviteCode]);
 
   useEffect(() => { fetchPosts(); }, [fetchPosts]);
 
@@ -42,15 +54,21 @@ export function usePosts(circleId, userId) {
     const todayCount = await getTodayCount();
     if (todayCount >= 5) throw new Error("5 posts a day is enough. come back tomorrow 🤍");
 
+    const [encContent, encContentUrl] = await Promise.all([
+      encrypt(content,     inviteCode),
+      encrypt(content_url, inviteCode),
+    ]);
+
     const { data, error } = await supabase
       .from("posts")
-      .insert({ circle_id: circleId, user_id: userId, type, content, content_url })
+      .insert({ circle_id: circleId, user_id: userId, type, content: encContent, content_url: encContentUrl })
       .select(`*, author:profiles(id, name, avatar_url), reactions(id, user_id, type)`)
       .single();
 
     if (error) throw error;
-    setPosts((prev) => [data, ...prev]);
-    return data;
+    const decrypted = await decryptPost(data);
+    setPosts((prev) => [decrypted, ...prev]);
+    return decrypted;
   };
 
   const uploadPhoto = async (file) => {
