@@ -5,6 +5,7 @@ const tabs = [
   { to: "/",        icon: "🏠", label: "Home"    },
   { to: "/mood",    icon: "🌡️", label: "Mood"    },
   { to: "/post",    icon: "✏️", label: "Post"    },
+  { to: "/recs",    icon: "💡", label: "Recs"    },
   { to: "/archive", icon: "🎞️", label: "Archive" },
   { to: "/profile", icon: "🤍", label: "Me"      },
 ];
@@ -24,7 +25,7 @@ export default function BottomNav() {
           <NavLink key={tab.to} to={tab.to} end={tab.to === "/"}>
             {({ isActive }) => (
               <motion.div
-                className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl"
+                className="flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl"
                 animate={{ scale: isActive ? 1.08 : 1 }}
                 transition={{ type: "spring", stiffness: 400, damping: 22 }}
                 style={{ background: isActive ? "rgba(0,0,0,0.06)" : "transparent" }}
