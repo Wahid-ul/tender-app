@@ -138,7 +138,7 @@ function AddSheet({ circle, userId, inviteCode, onAdd, onClose }) {
 
   return (
     <motion.div
-      className="fixed inset-0 z-50 flex flex-col justify-end"
+      className="fixed inset-0 z-[100] flex flex-col justify-end"
       style={{ background: "rgba(0,0,0,0.3)" }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
