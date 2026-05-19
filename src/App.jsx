@@ -9,6 +9,7 @@ import Mood          from "./pages/Mood";
 import NewPost       from "./pages/NewPost";
 import Archive       from "./pages/Archive";
 import Recs          from "./pages/Recs";
+import CatGame       from "./pages/CatGame";
 import Profile       from "./pages/Profile";
 
 function ProtectedApp() {
@@ -37,7 +38,8 @@ function ProtectedApp() {
         <Route path="/mood"    element={<Mood    user={user} circle={circle} />} />
         <Route path="/post"    element={<NewPost user={user} circle={circle} />} />
         <Route path="/archive" element={<Archive user={user} circle={circle} />} />
-        <Route path="/recs"    element={<Recs    user={user} circle={circle} />} />
+        <Route path="/recs"    element={<Recs     user={user} circle={circle} />} />
+        <Route path="/game"    element={<CatGame  user={user} circle={circle} />} />
         <Route path="/profile" element={<Profile user={user} circle={circle} signOut={signOut} />} />
         <Route path="*"        element={<Navigate to="/" replace />} />
       </Routes>
